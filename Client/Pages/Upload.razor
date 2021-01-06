@@ -10,11 +10,27 @@
 <hr>
 <AuthorizeView>
     <Authorized>
-        <img>
         <InputFile OnChange="@InputFileHandler" multiple>Select image> </InputFile>
-        <button @onclick="UploadImage">Upload image</button>
+        <button class="@UploadButtonClass" @onmouseover="UploadImage" @onmouseout="UploadImageOut">Upload image</button>
         <p id="file-error-output"></p>
-    </Authorized>
+        @if (Base64Images.Count > 0)
+        {
+            <h4>Images</h4>
+
+
+            @foreach (var image in Base64Images)
+            {
+                <div class="card" style="width:30rem">
+                    <div class="card-body">
+                        <img class="rounded m-1" src="@image" />
+                    </div>
+                 </div>
+            }
+
+
+}
+
+                            </Authorized>
     <NotAuthorized>
         <h5>Sorry! To upload images you must be logged in. Please log in or create an account to continue.</h5>
     </NotAuthorized>
@@ -22,6 +38,12 @@
 
 
 @code {
+    private string UploadButtonClass = "";
+
+    private IList<string> Base64Images = new List<string>();
+
+    private ISet<string> SupportedFormats = new HashSet<string> { "image/png","image/jpeg", "image/gif" };
+
     private async Task InputFileHandler(InputFileChangeEventArgs e)
     {
         const int MaxAllowedFileCount = 5;
@@ -29,14 +51,32 @@
         if (e.FileCount > MaxAllowedFileCount)
         {
             logger.LogError($"Too many files uploaded. Maximum is {MaxAllowedFileCount}. Actual is {e.FileCount}");
-            foreach(var image in e.GetMultipleFiles(MaxAllowedFileCount))
+        }
+        else
+        {
+            foreach (var image in e.GetMultipleFiles(MaxAllowedFileCount))
             {
-
+                if (!SupportedFormats.Contains(image.ContentType))
+                {
+                    logger.LogError("At least one file selected is not an image. Skipping it.");
+                    continue;
+                }
+                var readStream = image.OpenReadStream(10485760);
+                byte[] buffer = new byte[image.Size];
+                await readStream.ReadAsync(buffer);
+                var imageDataUrl =
+                    $"data:{image.ContentType};base64,{Convert.ToBase64String(buffer)}";
+                Base64Images.Add(imageDataUrl);
+                logger.LogInformation("Added image to list");
             }
         }
     }
     private void UploadImage()
     {
-        logger.LogError("Image select clicked");
+        UploadButtonClass = "selected-border";
+    }
+    private void UploadImageOut()
+    {
+        UploadButtonClass = "";
     }
 }
