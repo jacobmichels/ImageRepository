@@ -1,0 +1,33 @@
+﻿@using ImageRepository.Shared;
+
+<div class="text-center">
+    <h5>If you delete this image, any custom title or caption you have set will be lost. Do you still want to delete it?</h5>
+    <hr />
+    <img src="@Data" />
+    <hr />
+    <button class="btn btn-danger" @onclick="DeleteImage">Delete</button>
+    <button class="btn btn-secondary" @onclick="CancelDeletion">Cancel</button>
+</div>
+
+@code {
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [Parameter]
+    public Image Image { get; set; }
+
+    private string Data { get; set; }
+
+    private void DeleteImage()
+    {
+        ModalInstance.CloseAsync();
+    }
+
+    private void CancelDeletion()
+    {
+        ModalInstance.CancelAsync();
+    }
+
+    protected override void OnInitialized()
+    {
+        Data = $"data:{Image.ContentType};base64,{Convert.ToBase64String(Image.Data)}";
+    }
+}

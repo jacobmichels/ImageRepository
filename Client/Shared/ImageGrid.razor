@@ -1,0 +1,164 @@
+﻿@using ImageRepository.Shared;
+@using Microsoft.Extensions.Logging;
+
+@inject IModalService ModalService;
+@inject HttpClient Http;
+@inject ILogger<ImageGrid> logger;
+@inject IJSRuntime JSRuntime
+
+<div class="d-flex flex-row flex-wrap">
+    @for (int i =0;i<Images.Count;i++)
+    {
+        Image image = Images[i];
+        var imgNumber = i;
+        <div class="card text-center mx-auto mb-5 @CardSelected[imgNumber]" @onclick="@(()=>ToggleSelect(image,imgNumber))" style="width:350px;">
+            <div class="card-header">
+                @if (!string.IsNullOrWhiteSpace(image.Title))
+                {
+                    <p>@image.Title</p> }
+                else
+                {
+                    <p>Untitled.</p>}
+            </div>
+            <div class="card-img-top" style="min-height:300px;min-width:300px">
+                <img class="rounded m-1" src="@image.Base64DisplayData" />
+            </div>
+            <hr />
+            <div class="card-body">
+                @if (string.IsNullOrWhiteSpace(image.Caption))
+                {
+                    <p class="card-text">Uncaptioned.</p> }
+                else
+                {
+                    <p class="card-text">@image.Caption</p>
+                }
+
+                @if (ShowView)
+                {
+                    <button class="btn btn-primary m-1" @onclick="@(()=>ShowViewModal(image))">View</button>
+                }
+                @if (ShowEdit)
+                {
+                    <button class="btn btn-secondary m-1" @onclick="@(()=>ShowEditModal(image))">Edit</button>
+                }
+                @if (ShowDelete)
+                {
+                    <button class="btn btn-danger m-1" @onclick="@(()=>ShowDeleteModal(image))">Delete</button>
+                }
+
+
+
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public bool ShowDelete { get; set; }
+
+    [Parameter]
+    public bool ShowEdit { get; set; }
+
+    [Parameter]
+    public bool ShowView { get; set; }
+
+    [Parameter]
+    public bool UpdateServer { get; set; }
+
+    [Parameter]
+    public bool ShowSelections { get; set; }
+
+    [Parameter]
+    public IList<Image> Images { get; set; }
+
+    [Parameter]
+    public ISet<Image> ImagesToDelete { get; set; }
+
+    [Parameter]
+    public string[] CardSelected { get; set; }
+
+    private async Task ShowEditModal(Image image)
+    {
+        var ModalParams = new ModalParameters();
+        ModalParams.Add("Image", image);
+        var modalRef = ModalService.Show<EditModal>("Edit Image",ModalParams);
+        var result = await modalRef.Result;
+        if (result.Cancelled)
+        {
+            logger.LogInformation("Changed not saved.");
+        }
+        else
+        {
+            EditModel model = (EditModel)result.Data;
+            image.Title = model.Title;
+            image.Caption = model.Caption;
+            image.Private = model.Private;
+            if (UpdateServer)
+            {
+                var response = await Http.PatchAsync("/image",JsonContent.Create<Image>(image));
+                if (!response.IsSuccessStatusCode) {
+                    logger.LogError("Request to save edit failed.");
+                    return;
+                }
+            }
+            logger.LogInformation("Changes saved.");
+        }
+
+    }
+    private async Task ShowDeleteModal(Image image)
+    {
+        var ModalParams = new ModalParameters();
+        ModalParams.Add("Image", image);
+        var modalRef = ModalService.Show<DeleteModal>("Delete Image",ModalParams);
+        var result = await modalRef.Result;
+        if (result.Cancelled)
+        {
+            logger.LogInformation("Image not deleted");
+        }
+        else
+        {
+            if (UpdateServer)
+            {
+                IList<string> IDsToDelete = new List<string>();
+                IDsToDelete.Add(image.ImageId);
+                var response = await Http.PostAsJsonAsync<IEnumerable<string>>("/image/delete",IDsToDelete.AsEnumerable<string>());
+                if (!response.IsSuccessStatusCode)
+                {
+                    logger.LogError("Deletion failed on the server.");
+                    return;
+                }
+            }
+            logger.LogInformation("Image deleted");
+            Images.Remove(image);
+        }
+    }
+    private async Task ShowViewModal(Image image)
+    {
+        var ModalParams = new ModalParameters();
+        ModalParams.Add("Image",image);
+        var modalRef = ModalService.Show<ViewModal>(image.Title, ModalParams);
+        await modalRef.Result;
+    }
+    private void ToggleSelect(Image image, int imgNumber)
+    {
+        if (!ShowSelections)
+        {
+            return;
+        }
+        if (CardSelected[imgNumber].Contains("selected"))
+        {
+            ImagesToDelete.Remove(image);
+            CardSelected[imgNumber] = "";
+        }
+        else
+        {
+            ImagesToDelete.Add(image);
+            CardSelected[imgNumber] = "selected";
+        }
+    }
+    protected override void OnInitialized()
+    {
+        CardSelected = CardSelected ?? new string[Images.Count];
+    }
+}

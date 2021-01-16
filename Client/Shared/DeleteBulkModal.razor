@@ -1,0 +1,22 @@
+﻿@using ImageRepository.Shared;
+
+<div class="text-center">
+    <h5>Are you sure you want to delete all the selected images?</h5>
+    <hr />
+    <button class="btn btn-danger" @onclick="DeleteImage">Delete</button>
+    <button class="btn btn-secondary" @onclick="CancelDeletion">Cancel</button>
+</div>
+
+@code {
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+
+    private void DeleteImage()
+    {
+        ModalInstance.CloseAsync();
+    }
+
+    private void CancelDeletion()
+    {
+        ModalInstance.CancelAsync();
+    }
+}

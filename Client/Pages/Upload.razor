@@ -2,55 +2,57 @@
 
 @using Microsoft.Extensions.Logging;
 @using Microsoft.AspNetCore.Components.Forms;
+@using Microsoft.JSInterop;
+@using ImageRepository.Shared;
+
+@inject IJSRuntime JSRuntime
 @inject ILogger<Upload> logger;
+@inject IModalService ModalService
+@inject HttpClient Http
 
-<h1>Upload</h1>
-<hr>
-<h3>Here is where you can upload images to your account!</h3>
-<hr>
-<AuthorizeView>
-    <Authorized>
-        <InputFile OnChange="@InputFileHandler" multiple>Select image> </InputFile>
-        <button class="@UploadButtonClass" @onmouseover="UploadImage" @onmouseout="UploadImageOut">Upload image</button>
-        <p id="file-error-output"></p>
-        @if (Base64Images.Count > 0)
-        {
-            <h4>Images</h4>
+<div class="text-center">
+    <h1>Upload &#128228;</h1>
+    <hr>
+    <h3>Here is where you can upload images to your account!</h3>
+    <hr>
 
+    <AuthorizeView>
+        <Authorized>
+            <InputFile OnChange="@InputFileHandler" multiple>Select images from your computer> </InputFile>
+            <button @onclick="UploadImages" class="@UploadButtonClass btn btn-primary">Upload images</button>
+            <p id="file-error-output">@ErrorOutput</p>
 
-            @foreach (var image in Base64Images)
+            @if (Images.Count > 0)
             {
-                <div class="card" style="width:30rem">
-                    <div class="card-body">
-                        <img class="rounded m-1" src="@image" />
-                    </div>
-                 </div>
+                <h4>Images</h4>
+                <ImageGrid Images="@Images" ShowDelete="true" ShowEdit="true" ShowView="true"></ImageGrid>
             }
-
-
-}
-
-                            </Authorized>
-    <NotAuthorized>
-        <h5>Sorry! To upload images you must be logged in. Please log in or create an account to continue.</h5>
-    </NotAuthorized>
-</AuthorizeView>
+        </Authorized>
+        <NotAuthorized>
+            <h3>Sorry! To upload images you must be logged in. Please log in or create an account to continue.</h3>
+        </NotAuthorized>
+    </AuthorizeView>
+</div>
 
 
 @code {
+    private string ErrorOutput = "";
     private string UploadButtonClass = "";
 
-    private IList<string> Base64Images = new List<string>();
+    private IList<Image> Images = new List<Image>();
 
-    private ISet<string> SupportedFormats = new HashSet<string> { "image/png","image/jpeg", "image/gif" };
+    private ISet<string> SupportedFormats = new HashSet<string> { "image/png", "image/jpeg", "image/gif" };
 
     private async Task InputFileHandler(InputFileChangeEventArgs e)
     {
-        const int MaxAllowedFileCount = 5;
+        Images.Clear();
+
+        const int MaxAllowedFileCount = 10;
 
         if (e.FileCount > MaxAllowedFileCount)
         {
             logger.LogError($"Too many files uploaded. Maximum is {MaxAllowedFileCount}. Actual is {e.FileCount}");
+            await JSRuntime.InvokeVoidAsync("alert", $"Too many files uploaded. Maximum is {MaxAllowedFileCount}. You tried to upload {e.FileCount}");
         }
         else
         {
@@ -61,22 +63,41 @@
                     logger.LogError("At least one file selected is not an image. Skipping it.");
                     continue;
                 }
+                var resizedImage = await image.RequestImageFileAsync(image.ContentType, 300, 300);
+                var resizedReadStream = resizedImage.OpenReadStream(10485760);
                 var readStream = image.OpenReadStream(10485760);
-                byte[] buffer = new byte[image.Size];
-                await readStream.ReadAsync(buffer);
-                var imageDataUrl =
-                    $"data:{image.ContentType};base64,{Convert.ToBase64String(buffer)}";
-                Base64Images.Add(imageDataUrl);
+                Image ImageObject = new Image();
+                ImageObject.Title = image.Name;
+                ImageObject.Data = new byte[image.Size];
+                ImageObject.Caption = string.Empty;
+                ImageObject.ContentType = image.ContentType;
+                await readStream.ReadAsync(ImageObject.Data);
+
+                byte[] displayData = new byte[resizedImage.Size];
+                await resizedReadStream.ReadAsync(displayData);
+                ImageObject.Base64DisplayData =
+                    $"data:{image.ContentType};base64,{Convert.ToBase64String(displayData)}";
+                Images.Add(ImageObject);
                 logger.LogInformation("Added image to list");
             }
         }
     }
-    private void UploadImage()
+
+    private async Task UploadImages()
     {
-        UploadButtonClass = "selected-border";
-    }
-    private void UploadImageOut()
-    {
-        UploadButtonClass = "";
+        if (Images.Count == 0)
+        {
+            ErrorOutput = "No images selected to upload! Go select some and try again.";
+            return;
+        }
+
+        HttpResponseMessage response = await Http.PostAsJsonAsync("/image",Images);
+        if (!response.IsSuccessStatusCode)
+        {
+            ErrorOutput = $"An error occured on the server while uploading: {await response.Content.ReadAsStringAsync()}";
+            return;
+        }
+        ErrorOutput = "Images successfully uploaded to server";
+        Images.Clear();
     }
 }

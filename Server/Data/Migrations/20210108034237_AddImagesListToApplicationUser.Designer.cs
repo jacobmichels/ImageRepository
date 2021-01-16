@@ -3,14 +3,16 @@ using System;
 using ImageRepository.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ImageRepository.Server.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210108034237_AddImagesListToApplicationUser")]
+    partial class AddImagesListToApplicationUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -138,11 +140,6 @@ namespace ImageRepository.Server.Data.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("ImageCount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasDefaultValue(0);
-
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("INTEGER");
 
@@ -191,16 +188,15 @@ namespace ImageRepository.Server.Data.Migrations
             modelBuilder.Entity("ImageRepository.Shared.Image", b =>
                 {
                     b.Property<string>("ImageId")
-                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ApplicationUserId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Base64DisplayData")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Caption")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ContentType")
                         .HasColumnType("TEXT");
 
                     b.Property<byte[]>("Data")
@@ -212,12 +208,11 @@ namespace ImageRepository.Server.Data.Migrations
                     b.Property<string>("Title")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("UserID")
-                        .HasColumnType("TEXT");
-
                     b.HasKey("ImageId");
 
-                    b.ToTable("Images");
+                    b.HasIndex("ApplicationUserId");
+
+                    b.ToTable("Image");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -352,6 +347,13 @@ namespace ImageRepository.Server.Data.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
+            modelBuilder.Entity("ImageRepository.Shared.Image", b =>
+                {
+                    b.HasOne("ImageRepository.Server.Models.ApplicationUser", null)
+                        .WithMany("Images")
+                        .HasForeignKey("ApplicationUserId");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -401,6 +403,11 @@ namespace ImageRepository.Server.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("ImageRepository.Server.Models.ApplicationUser", b =>
+                {
+                    b.Navigation("Images");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,0 +1,99 @@
+﻿@using ImageRepository.Shared;
+
+@inject HttpClient Http
+
+<div class="text-center">
+    <hr>
+    <img src="@Data" />
+    <hr />
+    <div class="simple-form" @onkeydown="KeyDown">
+
+        <div class="form-group">
+            <label for="image-title">Image title</label>
+            <input @bind="Title" @bind:event="oninput" type="text" class="form-control" id="image-title" placeholder="New image title" />
+        </div>
+
+        <div class="form-group">
+            <label for="image-caption">Image Caption</label>
+            <input @bind="Caption" @bind:event="oninput" type="text" class="form-control" id="image-caption" placeholder="New image caption" />
+        </div>
+
+        <div class="text-start form-check form-switch mt-2 mb-3">
+            <label class="form-check-label" for="private-switch">Private</label>
+            <input @bind="Private" id="private-switch" class="form-check-input" type="checkbox">
+        </div>
+
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Albums
+            </button>
+            <div class="dropdown-menu">
+                @foreach (Album album in Albums)
+                {
+                    <button class="dropdown-item">@album.AlbumName</button>
+                }
+                <div class="dropdown-divider"></div>
+                <button class="dropdown-item">Create a new album</button>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" @onclick="SubmitForm">Save</button>
+        <button class="btn btn-danger" @onclick="Cancel">Cancel</button>
+    </div>
+</div>
+
+
+
+
+
+@code {
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+
+    [Parameter]
+    public Image Image { get; set; }
+
+    private IList<Album> Albums = new List<Album>();
+
+    private string Data { get; set; }
+    bool Private { get; set; }
+    bool ShowForm { get; set; } = true;
+    string Title { get; set; }
+    string Caption { get; set; }
+    int FormId { get; set; }
+
+    void SubmitForm()
+    {
+        ModalInstance.CloseAsync(ModalResult.Ok<EditModel>(new EditModel { Title = this.Title, Caption = this.Caption, Private = this.Private }));
+    }
+
+    void Cancel()
+    {
+        ModalInstance.CancelAsync();
+    }
+
+    private void KeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            ModalInstance.CloseAsync(ModalResult.Ok<EditModel>(new EditModel { Title = this.Title, Caption = this.Caption, Private = this.Private }));
+        }
+        if (e.Key == "Escape")
+        {
+            ModalInstance.CancelAsync();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Data = $"data:{Image.ContentType};base64,{Convert.ToBase64String(Image.Data)}";
+        Private = Image.Private;
+        Title = Image.Title;
+        Caption = Image.Caption;
+
+        var AlbumEnumerable = await Http.GetFromJsonAsync<IEnumerable<Album>>("/albums");
+        foreach(Album album in AlbumEnumerable)
+        {
+            Albums.Add(album);
+        }
+    }
+}

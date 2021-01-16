@@ -1,0 +1,144 @@
+﻿@page "/delete"
+
+@using ImageRepository.Shared;
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient Http
+@inject IModalService ModalService;
+
+<div class="text-center">
+    <h1>Delete &#9940;</h1>
+    <hr>
+    <h3>Here is where you can delete multiple images at a time from your account.</h3>
+    <hr>
+    <AuthorizeView>
+        <Authorized>
+            <h5>@StatusText</h5>
+            <div class="spinner-border text-primary @SpinnerVisibility" role="status">
+            </div>
+            @if (Images.Any())
+            {
+                <h5 class="pb-3">Click anywhere on the image cards to select them. When you have selected all the images you wish to delete, hit the red delete button.</h5>
+                <button class="btn btn-danger mb-3" @onclick="@(()=>ShowDeleteBulkModal())">Delete Selected Images</button>
+                <button class="btn btn-danger mb-3" @onclick="@(()=>ShowDeleteAllModal())">Delete All Images</button>
+                <ImageGrid Images="@Images" CardSelected="CardSelected" ImagesToDelete="@SelectedImages" ShowSelections="true"></ImageGrid>
+            }
+            else
+            {
+                <h5>Looks like you don't have any images uploaded to your account! Click the upload button on the left to start uploading images.</h5>
+            }
+
+        </Authorized>
+        <NotAuthorized>
+            <h3>Sorry! To delete images you must be logged in. Please log in or create an account to continue.</h3>
+        </NotAuthorized>
+    </AuthorizeView>
+</div>
+
+
+
+@code {
+    private string StatusText = "Fetching images...";
+
+    private string SpinnerVisibility = "visible";
+
+    private IList<Image> Images = new List<Image>();
+
+    private ISet<Image> SelectedImages = new HashSet<Image>();
+
+    private string[] CardSelected { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var AuthState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (!AuthState.User.Identity.IsAuthenticated)
+        {
+            return;
+        }
+        var ImagesEnumerable = await Http.GetFromJsonAsync<IEnumerable<Image>>("/image");
+        foreach (Image image in ImagesEnumerable)
+        {
+            Images.Add(image);
+        }
+        SpinnerVisibility = "invisible";
+        StatusText = "";
+        CardSelected = new string[Images.Count];
+        for (int i = 0; i < Images.Count; i++)
+        {
+            CardSelected[i] = "";
+        }
+    }
+
+    private async Task ShowDeleteBulkModal()
+    {
+        if (!SelectedImages.Any())
+        {
+            StatusText = "Please select at least one image to delete first.";
+            return;
+        }
+        var modalRef = ModalService.Show<DeleteBulkModal>("Delete Images");
+        var result = await modalRef.Result;
+        if (result.Cancelled)
+        {
+            StatusText = "Images not deleted.";
+        }
+        else
+        {
+            StatusText = "Images deleting...";
+            IList<string> IDsToDelete = new List<string>();
+            foreach(Image image in SelectedImages)
+            {
+                IDsToDelete.Add(image.ImageId);
+            }
+            var response = await Http.PostAsJsonAsync<IEnumerable<string>>("/image/delete", IDsToDelete.AsEnumerable<string>());
+            if (!response.IsSuccessStatusCode)
+            {
+                StatusText = "Image deletion failed on the server.";
+                return;
+            }
+            StatusText = "Images were successfully deleted";
+            foreach(Image image in SelectedImages)
+            {
+                Images.Remove(image);
+            }
+            SelectedImages.Clear();
+            CardSelected = new string[Images.Count];
+            for (int i = 0; i < Images.Count; i++)
+            {
+                CardSelected[i] = "";
+            }
+        }
+    }
+    private async Task ShowDeleteAllModal()
+    {
+        var modalRef = ModalService.Show<DeleteAllModal>("Delete All Images");
+        var result = await modalRef.Result;
+        if (result.Cancelled)
+        {
+            StatusText = "Images not deleted.";
+        }
+        else
+        {
+            StatusText = "Images deleting...";
+            IList<string> IDsToDelete = new List<string>();
+            foreach (Image image in Images)
+            {
+                IDsToDelete.Add(image.ImageId);
+            }
+            var response = await Http.PostAsJsonAsync<IEnumerable<string>>("/image/delete", IDsToDelete.AsEnumerable<string>());
+            if (!response.IsSuccessStatusCode)
+            {
+                StatusText = "Image deletion failed on the server.";
+                return;
+            }
+            StatusText = "Images were successfully deleted";
+            Images.Clear();
+            SelectedImages.Clear();
+            CardSelected = new string[Images.Count];
+            for (int i = 0; i < Images.Count; i++)
+            {
+                CardSelected[i] = "";
+            }
+        }
+    }
+}

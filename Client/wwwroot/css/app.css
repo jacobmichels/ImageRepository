@@ -49,8 +49,8 @@ a, .btn-link {
         top: 0.5rem;
     }
 
-.selected-border {
-    outline-color:blue;
+.selected {
+    outline-color:red;
     outline-width:thick;
     outline-style:solid;
 }

@@ -10,6 +10,8 @@ using Microsoft.Extensions.Hosting;
 using System.Linq;
 using ImageRepository.Server.Data;
 using ImageRepository.Server.Models;
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 namespace ImageRepository.Server
 {
@@ -32,14 +34,32 @@ namespace ImageRepository.Server
 
             services.AddDatabaseDeveloperPageExceptionFilter();
 
-            services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddIdentityServer()
                 .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
 
             services.AddAuthentication()
-                .AddIdentityServerJwt();
+                .AddIdentityServerJwt()
+                .AddGoogle(options =>
+                {
+                    IConfigurationSection googleAuthNSection =
+                    Configuration.GetSection("Authentication:Google");
+
+                    options.ClientId = googleAuthNSection["ClientId"];
+                    options.ClientSecret = googleAuthNSection["ClientSecret"];
+                })
+                .AddMicrosoftAccount(microsoftOptions =>
+                {
+                    microsoftOptions.ClientId = Configuration["Authentication:Microsoft:ClientId"];
+                    microsoftOptions.ClientSecret = Configuration["Authentication:Microsoft:ClientSecret"];
+                });
+
+            //the below code is not default and is needed to be able to get the current user in the controllers in a readable way
+            //found on this github issue https://github.com/dotnet/AspNetCore.Docs/issues/17517
+            services.Configure<IdentityOptions>(options =>
+                options.ClaimsIdentity.UserIdClaimType = ClaimTypes.NameIdentifier);
 
             services.AddControllersWithViews();
             services.AddRazorPages();

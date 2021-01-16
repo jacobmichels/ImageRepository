@@ -1,0 +1,67 @@
+﻿@page "/explore"
+
+@using ImageRepository.Shared;
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IHttpClientFactory HttpFactory
+
+<div class="text-center">
+    <h1>Explore &#127757;</h1>
+    <hr>
+    <h3>Here is where you can view images others have uploaded and marked as public.</h3>
+    <hr>
+    <h5>@StatusText</h5>
+    <div class="spinner-border text-primary @SpinnerVisibility" role="status">
+    </div>
+    @if (Images.Any())
+    {
+        <AuthorizeView>
+            <Authorized>
+                <h5 class="mb-3">You will not see your own images here. To view your own images, navigate to the Gallery.</h5>
+            </Authorized>
+        </AuthorizeView>
+        <ImageGrid Images="@Images" ShowView="true"></ImageGrid>
+    }
+    else
+    {
+        <h5>Looks like there are no images on the server marked public! Sorry about that!</h5>
+    }
+</div>
+@code {
+    private string StatusText = "Fetching images...";
+
+    private string SpinnerVisibility = "visible";
+
+    private IList<Image> Images = new List<Image>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        HttpClient Http = HttpFactory.CreateClient("ImageRepository.PublicServerAPI");      //probably not great to use a magic string here, but this is the simplest way to get the job done.
+        var ImagesEnumerable = await Http.GetFromJsonAsync<IEnumerable<Image>>("/publicimage");
+        if (!state.User.Identity.IsAuthenticated)
+        {
+            //display all images
+            foreach (Image image in ImagesEnumerable)
+            {
+                Images.Add(image);
+            }
+        }
+        else
+        {
+            //display images that do not belong to the current user
+            string userID = state.User.FindFirst(c => c.Type == "sub").Value;
+            Console.WriteLine(userID);
+            foreach (Image image in ImagesEnumerable)
+            {
+                if (image.UserID != userID)
+                {
+                    Images.Add(image);
+                }
+            }
+        }
+
+        SpinnerVisibility = "invisible";
+        StatusText = "";
+    }
+}
