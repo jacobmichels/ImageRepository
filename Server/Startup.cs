@@ -40,20 +40,18 @@ namespace ImageRepository.Server
             services.AddIdentityServer()
                 .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
 
+            //the below clientIDs and secrets are hard coded. This is not to be done in a real life application.
             services.AddAuthentication()
                 .AddIdentityServerJwt()
                 .AddGoogle(options =>
                 {
-                    IConfigurationSection googleAuthNSection =
-                    Configuration.GetSection("Authentication:Google");
-
-                    options.ClientId = googleAuthNSection["ClientId"];
-                    options.ClientSecret = googleAuthNSection["ClientSecret"];
+                    options.ClientId = "202468471207-vrakhs5dn4u27jdbtifv1bga6vp2lib4.apps.googleusercontent.com";
+                    options.ClientSecret = "AqzJCxOS_KiMBkycF_IAMLI-";
                 })
                 .AddMicrosoftAccount(microsoftOptions =>
                 {
-                    microsoftOptions.ClientId = Configuration["Authentication:Microsoft:ClientId"];
-                    microsoftOptions.ClientSecret = Configuration["Authentication:Microsoft:ClientSecret"];
+                    microsoftOptions.ClientId = "00694e41-cb91-4c4f-80c7-e43ffae7aeba";
+                    microsoftOptions.ClientSecret = "1kAB68W-~48.Lme36BGdd~BAyd3Mp4cN-9";
                 });
 
             //the below code is not default and is needed to be able to get the current user in the controllers in a readable way
