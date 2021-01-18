@@ -2,7 +2,7 @@
 Hello! Welcome to the image repository I built for my Shopify Summer 2021 application.
 
 # Please use Firefox
-I have tested this application with multiple web browsers. I have founded that Chromium based browsers don't interact well with Identity due to their use of samesite cookies, so I recommend using Firefox to view the site. 
+I have tested this application with multiple web browsers. I have found that Chromium based browsers don't interact well with Identity due to their use of samesite cookies, so I recommend using Firefox to view the site. 
 
 # Usage Instructions
 Please note this release targeted 64-bit Windows. It probably won't run on anything else.
