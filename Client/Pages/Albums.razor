@@ -1,0 +1,391 @@
+﻿@page "/albums"
+
+@using Blazorise;
+@using ImageRepository.Shared;
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient Http
+@inject IModalService ModalService;
+@inject NavigationManager NavigationManager
+
+<div class="text-center">
+    <h1>Albums &#128213;</h1>
+    <hr>
+    <h3>Here is where you can view your albums, and add/remove images from them.</h3>
+    <hr>
+    <AuthorizeView>
+        <Authorized>
+            <h5>@StatusText</h5>
+            <div class="spinner-border text-primary @SpinnerVisibility" role="status">
+            </div>
+            <Dropdown Class="btn" Disabled="DropdownDisabled">
+                <DropdownToggle Color="Color.Primary">
+                    Select existing album
+                </DropdownToggle>
+                <DropdownMenu>
+                    @for (int i = 0; i < AlbumList.Count; i++)
+                    {
+                        int index = i;
+                        <DropdownItem @onclick="(()=>ShowAlbum(AlbumList[index]))">@AlbumList[index].AlbumName</DropdownItem>
+                    }
+                </DropdownMenu>
+            </Dropdown>
+            <button class="btn btn-primary" @onclick="HandleCreateNewAlbum">Create new album</button>
+            <hr />
+            @if (ShowImageGrid)
+            {
+                if (CreateNewAlbum)
+                {
+                    <h5>Select the images you want in the album then give the album a name.</h5>
+                    <div class="form-group w-25 m-auto">
+                        <input @bind="AlbumName" @bind:event="oninput" type="text" class="form-control" id="album-name" placeholder="New album name" />
+                    </div>
+                    <button class="btn btn-primary mt-3 mb-3" @onclick="SaveAlbum">Save</button>
+                    <button class="btn btn-danger mt-3 mb-3" @onclick="CancelSaveAlbum">Cancel</button>
+                    <hr>
+                    <ImageGrid ShowDelete="false" ShowEdit="false" ShowView="true" ShowSelections="true" SelectedImages="SelectedImagesForAlbum" CardSelected="CardSelected" Images="ImagesToDisplay"></ImageGrid>
+                }
+                else if (AddImages)
+                {
+                    <h4>@CurrentAlbum.AlbumName</h4>
+                    <h5>Select the images you want to add to the album. Note that you cannot have duplicate images in an album.</h5>
+                    <button class="btn btn-primary mt-3 mb-3" @onclick="AddSelectedImages">Save</button>
+                    <button class="btn btn-danger mt-3 mb-3" @onclick="(()=>ShowAlbum(CurrentAlbum))">Cancel</button>
+                    <hr>
+                    <ImageGrid ShowDelete="false" ShowEdit="false" ShowView="true" ShowSelections="true" SelectedImages="SelectedImagesForAlbum" CardSelected="CardSelected" Images="ImagesToDisplay"></ImageGrid>
+                }
+                else
+                {
+                    <h4>@CurrentAlbum.AlbumName</h4>
+                    <h5>Here you can view the images in the album, add new images, as well as remove images from the album. You can also delete the album (does not remove images from account).</h5>
+                    <div class="form-group w-25 m-auto">
+                        <input @bind="AlbumName" @bind:event="oninput" type="text" class="form-control" id="album-name" placeholder="Update album name" />
+                    </div>
+                    <button class="btn btn-primary mt-3 mb-3" @onclick="UpdateAlbumName">Update album name</button>
+                    <button class="btn btn-primary mt-3 mb-3" @onclick="AddImagesToAlbum">Add new images</button>
+                    <button class="btn btn-danger mt-3 mb-3" @onclick="ShowDeleteImagesModal">Remove selected images</button>
+                    <button class="btn btn-danger mt-3 mb-3" @onclick="ShowDeleteAlbumModal">Delete album</button>
+                    <hr>
+                    @if (ImagesToDisplay.Count == 0)
+                    {
+                        <h5>There are no images in this album to display.</h5>
+                    }
+                    <ImageGrid ShowDelete="false" ShowEdit="false" ShowView="true" ShowSelections="true" CardSelected="CardSelected" SelectedImages="SelectedImagesForDelete" Images="ImagesToDisplay"></ImageGrid>
+                }
+            }
+        </Authorized>
+        <NotAuthorized>
+            <h3>Sorry! To view your images you must be logged in. Please log in or create an account to continue.</h3>
+        </NotAuthorized>
+    </AuthorizeView>
+</div>
+
+@code {
+    private string StatusText = "Fetching your albums...";
+
+    private string SpinnerVisibility = "visible";
+
+    private bool DropdownDisabled = true;
+
+    private Album CurrentAlbum { get; set; }
+
+    private bool ShowImageGrid = false;
+
+    private bool CreateNewAlbum = false;
+
+    private bool AddImages = false;
+
+    private string[] CardSelected { get; set; }
+
+    private string AlbumName { get; set; }
+
+    private IList<Album> AlbumList = new List<Album>();
+
+    //need to use fully qualified name because of collision with blazorise
+    private IList<ImageRepository.Shared.Image> UserImageList = new List<ImageRepository.Shared.Image>();
+
+    private IList<ImageRepository.Shared.Image> ImagesToDisplay = new List<ImageRepository.Shared.Image>();
+
+    private ISet<ImageRepository.Shared.Image> SelectedImagesForAlbum = new HashSet<ImageRepository.Shared.Image>();
+
+    private ISet<ImageRepository.Shared.Image> SelectedImagesForDelete = new HashSet<ImageRepository.Shared.Image>();
+
+    private void HandleCreateNewAlbum()
+    {
+        AlbumName = "";
+        CurrentAlbum = null;
+        ResetSelections();
+        AddImages = false;
+        ShowImageGrid = true;
+        CreateNewAlbum = true;
+        ImagesToDisplay = UserImageList;
+    }
+
+    private void ShowAlbum(Album album)
+    {
+        StatusText = "";
+        AlbumName = "";
+        AddImages = false;
+        CurrentAlbum = album;
+        SelectedImagesForDelete.Clear();
+        SelectedImagesForAlbum.Clear();
+        CreateNewAlbum = false;
+        ImagesToDisplay = new List<ImageRepository.Shared.Image>();
+        IEnumerable<ImageRepository.Shared.Image> AlbumImages = UserImageList.Where(image => album.ImagesIDs.Contains(image.ImageId));
+        foreach (ImageRepository.Shared.Image image in AlbumImages)
+        {
+            ImagesToDisplay.Add(image);
+        }
+        ResetSelections();
+        ShowImageGrid = true;
+    }
+
+    private void AddImagesToAlbum()
+    {
+        AddImages = true;
+        SelectedImagesForAlbum.Clear();
+        ImagesToDisplay = new List<ImageRepository.Shared.Image>();
+        foreach(ImageRepository.Shared.Image image in UserImageList)
+        {
+            if (!CurrentAlbum.ImagesIDs.Contains(image.ImageId))
+            {
+                ImagesToDisplay.Add(image);
+            }
+        }
+        ResetSelections();
+    }
+
+    private async Task AddSelectedImages()
+    {
+        if (CurrentAlbum.ImagesIDs.Length < 1000)
+        {
+            string[] newIdArray = new string[1000];
+            int index = 0;
+            foreach (string s in CurrentAlbum.ImagesIDs)
+            {
+                newIdArray[index++] = s;
+            }
+            foreach (ImageRepository.Shared.Image image in SelectedImagesForAlbum)
+            {
+                newIdArray[index++] = image.ImageId;
+            }
+            CurrentAlbum.ImagesIDs = newIdArray;
+        }
+        else
+        {
+            var selected = SelectedImagesForAlbum.ToList();
+            int selectedIndex = 0;
+            for (int i = 0; i < 1000; i++)
+            {
+                if (selectedIndex == selected.Count)
+                {
+                    break;
+                }
+                if (string.IsNullOrWhiteSpace(CurrentAlbum.ImagesIDs[i]))
+                {
+                    CurrentAlbum.ImagesIDs[i] = selected[selectedIndex++].ImageId;
+                }
+
+            }
+        }
+
+        var response = await Http.PostAsJsonAsync("/album/addimages", CurrentAlbum);
+        if (!response.IsSuccessStatusCode)
+        {
+            StatusText = "Failed to add new images.";
+            return;
+        }
+        StatusText = "New images added.";
+        ResetSelections();
+        AddImages = false;
+        ImagesToDisplay = new List<ImageRepository.Shared.Image>();
+        foreach (string id in CurrentAlbum.ImagesIDs)
+        {
+            if (!string.IsNullOrWhiteSpace(id))
+            {
+                ImagesToDisplay.Add(UserImageList.First(image => image.ImageId == id));
+            }
+        }
+
+    }
+
+    private async Task ShowDeleteImagesModal()
+    {
+        List<string> SelectedIDs = new List<string>();
+        foreach (ImageRepository.Shared.Image image in SelectedImagesForDelete)
+        {
+            SelectedIDs.Add(image.ImageId);
+        }
+        if (!SelectedIDs.Any())
+        {
+            StatusText = "No images selected to delete";
+            return;
+        }
+        ModalParameters modalParameters = new ModalParameters();
+        modalParameters.Add("AlbumName", CurrentAlbum.AlbumName);
+        var modalRef = ModalService.Show<DeleteAlbumImagesModal>("Delete Selected Images", modalParameters);
+        var result = await modalRef.Result;
+        if (result.Cancelled)
+        {
+            StatusText = "Images not deleted.";
+        }
+        else
+        {
+            await DeleteImagesFromAlbum(SelectedIDs);
+        }
+    }
+
+    private async Task DeleteImagesFromAlbum(List<string> SelectedIDs)
+    {
+        for (int i = 0; i < CurrentAlbum.ImagesIDs.Length; i++)
+        {
+            if (SelectedIDs.Contains(CurrentAlbum.ImagesIDs[i]))
+            {
+                CurrentAlbum.ImagesIDs[i] = "";
+            }
+        }
+        var response = await Http.PostAsJsonAsync<Album>("/album/deleteimages", CurrentAlbum);
+        if (!response.IsSuccessStatusCode)
+        {
+            StatusText = "Images failed to remove from album.";
+            return;
+        }
+        foreach (ImageRepository.Shared.Image image in SelectedImagesForDelete)
+        {
+            ImagesToDisplay.Remove(image);
+        }
+        ResetSelections();
+        StatusText = "Images removed from album.";
+    }
+
+    private async Task ShowDeleteAlbumModal()
+    {
+        ModalParameters modalParameters = new ModalParameters();
+        modalParameters.Add("AlbumName", CurrentAlbum.AlbumName);
+        var modalRef = ModalService.Show<DeleteAlbumModal>("Delete Album",modalParameters);
+        var result = await modalRef.Result;
+        if (result.Cancelled)
+        {
+            StatusText = "Album not deleted.";
+        }
+        else
+        {
+            await DeleteAlbum();
+        }
+    }
+
+    private async Task DeleteAlbum()
+    {
+        var response = await Http.PostAsJsonAsync<Album>("/album/delete", CurrentAlbum);
+        if (!response.IsSuccessStatusCode)
+        {
+            StatusText = "Album failed to delete.";
+            return;
+        }
+        StatusText = "Album deleted.";
+        AlbumList.Remove(CurrentAlbum);
+        ShowImageGrid = false;
+        CreateNewAlbum = false;
+        AddImages = false;
+        CurrentAlbum = null;
+        if (AlbumList.Count == 0)
+        {
+            DropdownDisabled = true;
+        }
+    }
+
+    private async Task SaveAlbum()
+    {
+        Album album = new Album();
+        album.ImagesIDs = new string[1000];
+        album.AlbumName = AlbumName;
+        if (string.IsNullOrWhiteSpace(album.AlbumName))
+        {
+            album.AlbumName = "Unnamed Album";
+        }
+        album.AlbumID = Guid.NewGuid().ToString();
+        int index = 0;
+        foreach (ImageRepository.Shared.Image image in SelectedImagesForAlbum)
+        {
+            album.ImagesIDs[index++] = image.ImageId;
+        }
+        var response = await Http.PostAsJsonAsync<Album>("/album", album);
+        if (!response.IsSuccessStatusCode)
+        {
+            StatusText = "Album upload failed.";
+            return;
+        }
+        StatusText = "Album uploaded successfully!";
+        ShowImageGrid = false;
+        CreateNewAlbum = false;
+        AlbumList.Add(album);
+        DropdownDisabled = false;
+    }
+
+    private void CancelSaveAlbum()
+    {
+        StatusText = "Operation cancelled!";
+        ShowImageGrid = false;
+        CreateNewAlbum = false;
+        AddImages = false;
+    }
+
+    private async Task UpdateAlbumName()
+    {
+        CurrentAlbum.AlbumName = AlbumName;
+        if (string.IsNullOrWhiteSpace(CurrentAlbum.AlbumName))
+        {
+            StatusText = "Please enter a new name for the album";
+            return;
+        }
+        var response = await Http.PostAsJsonAsync<Album>("/album/rename", CurrentAlbum);
+        if (!response.IsSuccessStatusCode)
+        {
+            StatusText = "Album name update failed.";
+            return;
+        }
+        StatusText = "Album renamed.";
+        AlbumName = "";
+    }
+
+    private void ResetSelections()
+    {
+        CardSelected = new string[UserImageList.Count];
+        for (int i = 0; i < UserImageList.Count; i++)
+        {
+            CardSelected[i] = "";
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var AuthState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (!AuthState.User.Identity.IsAuthenticated)
+        {
+            return;
+        }
+        var AlbumEnumerable = await Http.GetFromJsonAsync<IEnumerable<Album>>("/album");
+        foreach (Album album in AlbumEnumerable)
+        {
+            AlbumList.Add(album);
+        }
+        if (AlbumList.Any())
+        {
+            Console.WriteLine(AlbumList.Count);
+            DropdownDisabled = false;
+            StatusText = "";
+        }
+        else
+        {
+            StatusText = "It looks like you don't have any albums! Click the create button to get started.";
+        }
+        var ImageEnumerable = await Http.GetFromJsonAsync<IEnumerable<ImageRepository.Shared.Image>>("/image");
+        foreach (ImageRepository.Shared.Image image in ImageEnumerable)
+        {
+            UserImageList.Add(image);
+        }
+        ResetSelections();
+        SpinnerVisibility = "invisible";
+    }
+
+}

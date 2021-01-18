@@ -14,6 +14,7 @@ namespace ImageRepository.Server.Data
     public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
     {
         public DbSet<Image> Images { get; set; }
+        public DbSet<Album> Albums { get; set; }
         public ApplicationDbContext(
             DbContextOptions options,
             IOptions<OperationalStoreOptions> operationalStoreOptions) : base(options, operationalStoreOptions)
@@ -26,6 +27,12 @@ namespace ImageRepository.Server.Data
             builder.Entity<ApplicationUser>()
                 .Property(user => user.ImageCount)
                 .HasDefaultValue(0);
+
+            builder.Entity<Album>()
+                .Property(e => e.ImagesIDs)
+                .HasConversion(
+                    v => string.Join(',', v),
+                    v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
         }
     }
 }

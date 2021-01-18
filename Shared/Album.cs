@@ -9,10 +9,9 @@ namespace ImageRepository.Shared
 {
     public class Album
     {
-        public string UserID { get; set; }
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public string OwnerID { get; set; }
         public string AlbumID { get; set; }
-        public int ImageCount { get; set; }
         public string AlbumName { get; set; }
+        public string[] ImagesIDs { get; set; }
     }
 }

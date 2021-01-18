@@ -3,14 +3,16 @@ using System;
 using ImageRepository.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ImageRepository.Server.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210117190008_MoveToImageIDSfromImages")]
+    partial class MoveToImageIDSfromImages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -191,6 +193,7 @@ namespace ImageRepository.Server.Data.Migrations
             modelBuilder.Entity("ImageRepository.Shared.Album", b =>
                 {
                     b.Property<string>("AlbumID")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("AlbumName")

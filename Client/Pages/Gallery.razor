@@ -9,7 +9,7 @@
 <div class="text-center">
     <h1>Gallery &#128083;</h1>
     <hr>
-    <h3>Here is where you can view, edit, and delete the individual images on your account.</h3>
+    <h3>Here is where you can view, edit, and delete all the individual images on your account.</h3>
     <hr>
     <AuthorizeView>
         <Authorized>
@@ -19,10 +19,6 @@
             @if (Images.Any())
             {
                 <ImageGrid Images="@Images" UpdateServer="true" ShowView="true" ShowEdit="true" ShowDelete="true"></ImageGrid>
-            }
-            else
-            {
-                <h5>Looks like you don't have any images uploaded to your account! Click the upload button on the left to start uploading images.</h5>
             }
         </Authorized>
         <NotAuthorized>
@@ -52,6 +48,11 @@
             Images.Add(image);
         }
         SpinnerVisibility = "invisible";
+        if (!Images.Any())
+        {
+            StatusText = "Looks like you don't have any images uploaded to your account! Click the upload button on the left to start uploading images.";
+            return;
+        }
         StatusText = "";
     }
 }

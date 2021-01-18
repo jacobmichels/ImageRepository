@@ -3,14 +3,16 @@ using System;
 using ImageRepository.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ImageRepository.Server.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210117181034_MoveToAlbumWithImageList")]
+    partial class MoveToAlbumWithImageList
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -191,12 +193,10 @@ namespace ImageRepository.Server.Data.Migrations
             modelBuilder.Entity("ImageRepository.Shared.Album", b =>
                 {
                     b.Property<string>("AlbumID")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("AlbumName")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ImagesIDs")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("OwnerID")
@@ -211,6 +211,9 @@ namespace ImageRepository.Server.Data.Migrations
                 {
                     b.Property<string>("ImageId")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AlbumID")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Base64DisplayData")
@@ -235,6 +238,8 @@ namespace ImageRepository.Server.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("ImageId");
+
+                    b.HasIndex("AlbumID");
 
                     b.ToTable("Images");
                 });
@@ -371,6 +376,13 @@ namespace ImageRepository.Server.Data.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
+            modelBuilder.Entity("ImageRepository.Shared.Image", b =>
+                {
+                    b.HasOne("ImageRepository.Shared.Album", null)
+                        .WithMany("Images")
+                        .HasForeignKey("AlbumID");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -420,6 +432,11 @@ namespace ImageRepository.Server.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("ImageRepository.Shared.Album", b =>
+                {
+                    b.Navigation("Images");
                 });
 #pragma warning restore 612, 618
         }

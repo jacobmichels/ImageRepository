@@ -3,14 +3,16 @@ using System;
 using ImageRepository.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ImageRepository.Server.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210117170222_AddAlbumIDToImages")]
+    partial class AddAlbumIDToImages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -191,13 +193,14 @@ namespace ImageRepository.Server.Data.Migrations
             modelBuilder.Entity("ImageRepository.Shared.Album", b =>
                 {
                     b.Property<string>("AlbumID")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("AlbumName")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ImagesIDs")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("ImageCount")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("OwnerID")
                         .HasColumnType("TEXT");
@@ -211,6 +214,9 @@ namespace ImageRepository.Server.Data.Migrations
                 {
                     b.Property<string>("ImageId")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AlbumID")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Base64DisplayData")

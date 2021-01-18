@@ -24,7 +24,7 @@
     }
     else
     {
-        <h5>Looks like there are no images on the server marked public! Sorry about that!</h5>
+        <h5></h5>
     }
 </div>
 @code {
@@ -62,6 +62,11 @@
         }
 
         SpinnerVisibility = "invisible";
+        if (!Images.Any())
+        {
+            StatusText = "There are no images on the server marked public.";
+            return;
+        }
         StatusText = "";
     }
 }

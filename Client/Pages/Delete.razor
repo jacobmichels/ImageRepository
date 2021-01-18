@@ -21,11 +21,11 @@
                 <h5 class="pb-3">Click anywhere on the image cards to select them. When you have selected all the images you wish to delete, hit the red delete button.</h5>
                 <button class="btn btn-danger mb-3" @onclick="@(()=>ShowDeleteBulkModal())">Delete Selected Images</button>
                 <button class="btn btn-danger mb-3" @onclick="@(()=>ShowDeleteAllModal())">Delete All Images</button>
-                <ImageGrid Images="@Images" CardSelected="CardSelected" ImagesToDelete="@SelectedImages" ShowSelections="true"></ImageGrid>
+                <ImageGrid Images="@Images" CardSelected="CardSelected" SelectedImages="@SelectedImages" ShowSelections="true"></ImageGrid>
             }
             else
             {
-                <h5>Looks like you don't have any images uploaded to your account! Click the upload button on the left to start uploading images.</h5>
+                <h5></h5>
             }
 
         </Authorized>
@@ -61,12 +61,17 @@
             Images.Add(image);
         }
         SpinnerVisibility = "invisible";
-        StatusText = "";
         CardSelected = new string[Images.Count];
         for (int i = 0; i < Images.Count; i++)
         {
             CardSelected[i] = "";
         }
+        if (!Images.Any())
+        {
+            StatusText = "Looks like you don't have any images uploaded to your account! Click the upload button on the left to start uploading images.";
+            return;
+        }
+        StatusText = "";
     }
 
     private async Task ShowDeleteBulkModal()

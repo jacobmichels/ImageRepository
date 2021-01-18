@@ -7,40 +7,28 @@
     <h4 class="pb-2">Here are some of it's features.</h4>
     <div class="mx-auto text-left list-group list-group-flush" style="max-width:600px">
         <ul>
-            <li class="list-group-item">Secure local authentication: Upload images to your account, only you can view your images. Account details are stored securely with <a href="https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity?view=aspnetcore-5.0&tabs=visual-studio">Identity</a>.</li>
+            <li class="list-group-item">Secure local authentication: Images are uploaded to your account. Account details are stored securely with <a href="https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity?view=aspnetcore-5.0&tabs=visual-studio">Identity</a>.</li>
+            <li class="list-group-item">External authentication providers: log in with your Google or Microsoft account!</li>
+            <li class="list-group-item">Mark your images as public for them to be visible to others, or private for them to be hidden.</li>
+            <li class="list-group-item">Look at the images others have uploaded as public on the <a href="/explore">Explore</a> page.</li>
+            <li class="list-group-item">Add your images to collections called <a href="/albums">Albums</a> for simple organization.</li>
             <li class="list-group-item">Store a title and caption along with your images.</li>
-            <li class="list-group-item">Upload, edit, delete operations on images.</li>
+            <li class="list-group-item">Support for upload, edit, and delete operations on images.</li>
             <li class="list-group-item">Supports GIF, JPEG, and PNG image formats.</li>
-            <li class="list-group-item">Resizes images for previews, while saving image in the original size.</li>
         </ul>
     </div>
-    <div>
-        <hr />
-        <h3><strong>Let's take a tour</strong></h3>
-        <h4>Walkthrough</h4>
-        <div class="mx-auto text-left" style="max-width:600px">
-            <ol>
-                <li>Let's start by creating an account. Hit register at the top of any page and go through the registration process.</li>
-                <li>Now that we have an account, go to the upload page to start uploading images. You can upload up to 10 images at a time. Be sure the images are either JPEGs, PNGs, or GIFs else they will not be uploaded.</li>
-                <li>At the stage when you have image previews on the screen, you can edit the title and caption of each image, as well as view the image's original size before you hit the upload button.</li>
-                <li>Once you're satisfied with the state of your images, you can click the blue upload button to upload the images to the server and bind them to your account.</li>
-                <li>To access the images you just uploaded, you can click the Gallery button on the navigation menu. Notice how you can only view your own images.</li>
-                <li>Here, you can edit your titles/captions, view the original images, and delete your images. Deleted images are purged from the server.</li>
-                <li>To delete more than one image at a time, navigate to the delete page on the left. Here you are able to select as many images as you'd like and delete them in one go.</li>
-            </ol>
-        </div>
-    </div>
+
     <div>
         <hr />
         <h3><strong>How's it made?</strong></h3>
         <div class="mx-auto text-left pb-3" style="max-width:600px">
             <h4 class="text-center">The frontend is built with Blazor WebAssembly. No JavaScript needed! (Almost*)</h4>
-            <p>I decided to go with <a href="https://docs.microsoft.com/en-us/aspnet/core/blazor/?view=aspnetcore-5.0#blazor-webassembly">Blazor</a> because it's cutting edge, very unique, and I wanted to get more experience with creating single page applications. Blazor feels very similar to react in the way that you create and interact with components, and manage their state. It's a very streamlined and easy to learn experience thanks to great documentation by Microsoft. I'll definitely be using it more in the future, and am planning on exploring some component libraries like <a href="https://www.matblazor.com/"> matblazor</a>. I also used Bootstrap and OpenIconic for some ready made components/icons and Bootstrap's simple flexbox system.</p>
+            <p>I decided to go with <a href="https://docs.microsoft.com/en-us/aspnet/core/blazor/?view=aspnetcore-5.0#blazor-webassembly">Blazor</a> because it's cutting edge, unique, and I wanted to get more experience with creating single-page applications. Blazor feels very similar to react in the way that you create and interact with components, and manage their state. It's a very streamlined and easy to learn experience thanks to great documentation by Microsoft. I'll definitely be using it more in the future, and am planning on exploring some component libraries like <a href="https://www.matblazor.com/"> matblazor</a>. I also used Bootstrap and OpenIconic for some ready-made components/icons and Bootstrap's simple flexbox system.</p>
         </div>
 
         <div class="mx-auto text-left pb-3" style="max-width:600px">
-            <h4 class="text-center">The backend is running ASP.NET Core and the Entity Framework Core ORM on top of an SQLite database.</h4>
-            <p>What a mouthful. I choose to use <a href="https://docs.microsoft.com/en-us/aspnet/core/introduction-to-aspnet-core?view=aspnetcore-5.0">ASP.NET Core</a> so I could use .NET on the frontend and the backend, just like you can do with JavaScript. I made this decision to be able to share some code between the frontend and backend (Image class is shared) as well as to be able to easily transfer data between frontend and backend. ASP.NET Core and Blazor appear to be able to transfer .NET objects over HTTP requests by some sneaky JSON serialization that makes the task of communicating between frontend and backend much simpler. I also am very familiar with ASP.NET Core having worked with it for a few months at Manulife. As for <a href="https://docs.microsoft.com/en-us/ef/core/">Entity Framework Core</a>, I'm less familiar with it. At the start, I was only using it because it came with ASP.NET Core and it seemed like most of Microsoft's documentation assumed you were using it. I was prepared to connect to the SQLite database myself and execute some SQL but that was not needed at all thanks to EF Core and LINQ. LINQ and EF allowed me easily interact with SQLite within the language without writing SQL. I didn't plan on using it but I'm glad I gave it a chance and can't wait until I get to use it again!</p>
+            <h4 class="text-center">The backend is running ASP.NET Core and Entity Framework Core ORM on top of an SQLite database.</h4>
+            <p>I choose to use <a href="https://docs.microsoft.com/en-us/aspnet/core/introduction-to-aspnet-core?view=aspnetcore-5.0">ASP.NET Core</a> so I could use .NET on the frontend and the backend, just like you can do with JavaScript. I made this decision to be able to share some code between the frontend and backend (Image class is shared) as well as to be able to easily transfer data between frontend and backend. ASP.NET Core and Blazor appear to be able to transfer .NET objects over HTTP requests through some sneaky JSON serialization that makes the task of communicating between frontend and backend much simpler. I also am very familiar with ASP.NET Core, having worked with it for a few months at Manulife. As for <a href="https://docs.microsoft.com/en-us/ef/core/">Entity Framework Core</a>, I'm less familiar with it. At the start, I was only using it because it came with ASP.NET Core and it seemed like most of Microsoft's documentation assumed you were using it. I was prepared to connect to the SQLite database myself and execute my own SQL but that was not needed at all thanks to EF Core and LINQ. LINQ and EF allowed me to easily interact with SQLite within the language without writing SQL. I didn't plan on using it but I'm glad I gave it a chance and can't wait until I get to use it again!</p>
         </div>
 
         <div class="mx-auto text-left" style="max-width:600px">
@@ -50,21 +38,16 @@
     </div>
     <div>
         <hr />
-        <h3><strong>Is it perfect?</strong></h3>
-        <h4>No.</h4>
-    </div>
-    <div>
-        <hr />
         <h3><strong>What would you improve?</strong></h3>
         <h4>Here are some ideas:</h4>
         <div class="mx-auto text-left" style="max-width:600px">
             <ul class="list-group">
-                <li>Add public/private tags for images. Would allow/disallow others from viewing your images in their gallery. Currently all images are private.</li>
-                <li>Add albums (collections of images). Users would be to add an image to an album then view the album in the gallery.</li>
+                <li>Make loading images from the server more efficient. I frequently fetch images from the server which takes up a lot of time. What I should be doing is keeping a persistent client-side cache of the current user's images. This way I would only need to ask the server for the user's images once.</li>
                 <li>Add a simple editor using a library like <a href="https://github.com/SixLabors/ImageSharp">ImageSharp</a> to allow features like image cropping and adding filters.</li>
-                <li>Add <a href="https://docs.microsoft.com/en-us/aspnet/core/security/authentication/social/?view=aspnetcore-5.0&tabs=visual-studio">external authentication services</a> like Google or Microsoft. This would allow a user to use their existing account from another provider on the site.</li>
                 <li>Add email verification for reasons listed <a href="https://ux.stackexchange.com/questions/111005/what-is-the-point-of-email-verification">here.</a></li>
-                <li>Spend time to make the UI prettier. Possibly use a component library like <a href="https://www.matblazor.com/"> matblazor</a> to make this job easier.</li>
+                <li>Spend time to make the UI prettier. Possibly use a component library like <a href="https://www.matblazor.com/">matblazor</a> to make this job easier.</li>
+                <li>Do some general code cleanup. I'm sure that there are some components I've written that could be written in clearer ways or more efficient ways. Also, add a bunch more comments to some of the more complicated areas of code.</li>
+                <li>The commit history. I went long periods of time without commits, which led to very few, but very large commits. This is not the proper way to use source control.</li>
             </ul>
         </div>
     </div>

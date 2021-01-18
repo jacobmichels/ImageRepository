@@ -20,7 +20,9 @@
         <Authorized>
             <InputFile OnChange="@InputFileHandler" multiple>Select images from your computer> </InputFile>
             <button @onclick="UploadImages" class="@UploadButtonClass btn btn-primary">Upload images</button>
-            <p id="file-error-output">@ErrorOutput</p>
+            <p id="file-error-output">@StatusText</p>
+            <div class="spinner-border text-primary @SpinnerVisibility" role="status">
+            </div>
 
             @if (Images.Count > 0)
             {
@@ -36,8 +38,11 @@
 
 
 @code {
-    private string ErrorOutput = "";
+    private string StatusText = "";
+
     private string UploadButtonClass = "";
+
+    private string SpinnerVisibility = "invisible";
 
     private IList<Image> Images = new List<Image>();
 
@@ -71,6 +76,7 @@
                 ImageObject.Data = new byte[image.Size];
                 ImageObject.Caption = string.Empty;
                 ImageObject.ContentType = image.ContentType;
+                ImageObject.Private = true;
                 await readStream.ReadAsync(ImageObject.Data);
 
                 byte[] displayData = new byte[resizedImage.Size];
@@ -87,17 +93,18 @@
     {
         if (Images.Count == 0)
         {
-            ErrorOutput = "No images selected to upload! Go select some and try again.";
+            StatusText = "No images selected to upload! Go select some and try again.";
             return;
         }
-
+        SpinnerVisibility = "visible";
         HttpResponseMessage response = await Http.PostAsJsonAsync("/image",Images);
         if (!response.IsSuccessStatusCode)
         {
-            ErrorOutput = $"An error occured on the server while uploading: {await response.Content.ReadAsStringAsync()}";
+            StatusText = $"An error occured on the server while uploading: {await response.Content.ReadAsStringAsync()}";
             return;
         }
-        ErrorOutput = "Images successfully uploaded to server";
+        StatusText = "Images successfully uploaded to server";
         Images.Clear();
+        SpinnerVisibility = "invisible";
     }
 }

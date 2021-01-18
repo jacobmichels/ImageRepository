@@ -9,9 +9,14 @@
 <div class="d-flex flex-row flex-wrap">
     @for (int i =0;i<Images.Count;i++)
     {
-        Image image = Images[i];
         var imgNumber = i;
-        <div class="card text-center mx-auto mb-5 @CardSelected[imgNumber]" @onclick="@(()=>ToggleSelect(image,imgNumber))" style="width:350px;">
+        Image image = Images[imgNumber];
+        string CardSelectedClass = "";
+        @if (ShowSelections)
+        {
+            CardSelectedClass = CardSelected[imgNumber];
+        }
+        <div class="card text-center mx-auto mb-5 @CardSelectedClass" @onclick="@(()=>ToggleSelect(image,imgNumber))" style="width:350px;">
             <div class="card-header">
                 @if (!string.IsNullOrWhiteSpace(image.Title))
                 {
@@ -35,7 +40,7 @@
 
                 @if (ShowView)
                 {
-                    <button class="btn btn-primary m-1" @onclick="@(()=>ShowViewModal(image))">View</button>
+                    <button class="btn btn-primary m-1" @onclick="@(()=>ShowViewModal(image))" @onclick:stopPropagation="true">View</button>
                 }
                 @if (ShowEdit)
                 {
@@ -73,7 +78,7 @@
     public IList<Image> Images { get; set; }
 
     [Parameter]
-    public ISet<Image> ImagesToDelete { get; set; }
+    public ISet<Image> SelectedImages { get; set; }
 
     [Parameter]
     public string[] CardSelected { get; set; }
@@ -148,12 +153,12 @@
         }
         if (CardSelected[imgNumber].Contains("selected"))
         {
-            ImagesToDelete.Remove(image);
+            SelectedImages.Remove(image);
             CardSelected[imgNumber] = "";
         }
         else
         {
-            ImagesToDelete.Add(image);
+            SelectedImages.Add(image);
             CardSelected[imgNumber] = "selected";
         }
     }
