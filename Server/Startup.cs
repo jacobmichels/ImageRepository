@@ -45,8 +45,8 @@ namespace ImageRepository.Server
                 .AddIdentityServerJwt()
                 .AddGoogle(options =>
                 {
-                    options.ClientId = "202468471207-vrakhs5dn4u27jdbtifv1bga6vp2lib4.apps.googleusercontent.com";
-                    options.ClientSecret = "AqzJCxOS_KiMBkycF_IAMLI-";
+                    options.ClientId = "487452232845-7te25u2o778cm27tski3gfrvegmvv3vp.apps.googleusercontent.com";
+                    options.ClientSecret = "iI1g71oN1FFxV21jgUBSsoXU";
                 })
                 .AddMicrosoftAccount(microsoftOptions =>
                 {
