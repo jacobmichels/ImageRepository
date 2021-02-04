@@ -22,5 +22,5 @@ Example account pass: Abc!12
 4. Try bulk deleting. So you don't need to go through and delete each image one at a time, try out the bulk delete on the delete page. On this page, you can select images by clicking on them and deleting all that are selected. You can also remove all images from your account.
 5. Sign up with an external authentication provider. You can use your Google or Microsoft account to register for an account on the site. Just hit register and then choose Google or Microsoft. 
 
-#Feb 2021 Update
+# Feb 2021 Update
 I wanted to ensure that this application still functioned correctly, so I tested it. I found problems with both external authentication providers, so I pushed a commit and created a new release to fix the issues. I didn't want to sit around knowing some functionality in my application was broken. If this is cheating, feel free to ignore the updated release and use the original one.:) 
