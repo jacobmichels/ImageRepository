@@ -6,7 +6,7 @@ I have tested this application with multiple web browsers. I have found that Chr
 
 # Usage Instructions
 Please note this release targeted 64-bit Windows. It probably won't run on anything else.
-1. Go to releases and download the zip files under the 1.0 release.
+1. Go to releases and download the ImageRepository.zip file under the latest release (read update below).
 2. Once downloaded, extract this file somewhere onto your computer.
 3. Run the file "ImageRepository.Server.exe". You will need to bypass SmartScreen by clicking learn more then run anyway. This will start the application.
 4. Navigate to http://localhost:5000 to access the Image Repository client. It may redirect to HTTPS. Remember to use Firefox please!
@@ -21,3 +21,6 @@ Example account pass: Abc!12
 3. Check out public images on the Explore page. If another user has uploaded an image onto their account and unchecked the private checkbox, you will be able to see the image along with it's title and caption here.
 4. Try bulk deleting. So you don't need to go through and delete each image one at a time, try out the bulk delete on the delete page. On this page, you can select images by clicking on them and deleting all that are selected. You can also remove all images from your account.
 5. Sign up with an external authentication provider. You can use your Google or Microsoft account to register for an account on the site. Just hit register and then choose Google or Microsoft. 
+
+#Feb 2021 Update
+I wanted to ensure that this application still functioned correctly, so I tested it. I found problems with both external authentication providers, so I pushed a commit and created a new release to fix the issues. I didn't want to sit around knowing some functionality in my application was broken. If this is cheating, feel free to ignore the updated release and use the original one.:) 
